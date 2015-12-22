@@ -165,12 +165,12 @@ defmodule Bplist do
     {own, Base.encode64(buff)}
   end
 
-  # FIX
   defp read_binary_unicode_string(own, len) do
     size = len * 2
     << buff :: binary-size(size), rest :: binary >> = own.fp
+    out = encode_unicode_string(buff, "")
     own = %{own | fp: rest}
-    {own, buff}
+    {own, out}
   end
 
   defp read_binary_array(own, len) when len != 0 do
@@ -232,14 +232,25 @@ defmodule Bplist do
     end
   end
 
+  defp encode_unicode_string(binary, out) when byte_size(binary) == 0 do
+    out
+  end
+
+  defp encode_unicode_string(binary, out) do
+    << multi_byte :: binary-size(2), rest :: binary >> = binary
+    << utf16_string :: utf16 >> = multi_byte
+    out = out <> << utf16_string :: utf8 >>
+    encode_unicode_string(rest, out)
+  end
+
   defp unpack_helper(format, data) do
     case format do
       "B" ->
-        <<tmp_binary :: unsigned-size(8), rest :: binary>> = data
+        << tmp_binary :: unsigned-size(8), rest :: binary >> = data
       "H" ->
-        <<tmp_binary :: unsigned-integer-size(16), rest :: binary>> = data
+        << tmp_binary :: unsigned-integer-size(16), rest :: binary >> = data
       "L" ->
-        <<tmp_binary :: unsigned-integer-size(32), rest :: binary>> = data
+        << tmp_binary :: unsigned-integer-size(32), rest :: binary >> = data
     end
     {rest, tmp_binary}
   end

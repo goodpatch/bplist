@@ -12,6 +12,7 @@ defmodule BplistTest do
     assert result["BooleanFalseKey"] == false
     assert result["ArrayKey"] == [true, "Item1", 123456789]
     assert result["DictionaryKey"] == %{"DictKey1" => "DictString", "DictKey2" => false}
+    assert result["MultibyteStringKey"] == "あaいi熙☆ω"
   end
 
   test "Bplist Error Test" do
