@@ -27,6 +27,7 @@ defmodule Bplist.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:hexate,  ">= 0.5.0"}]
+    [{:hexate,  ">= 0.5.0"},
+     {:floki, git: "https://github.com/philss/floki"}]
   end
 end
