@@ -1,6 +1,7 @@
 defmodule Bplist do
 
   import Bitwise
+  import Floki
 
   defstruct fp: <<>>, object_ref_size: 1, offsets: [], body: <<>>
 
@@ -25,13 +26,31 @@ defmodule Bplist do
   end
 
   def load(file) do
-    own = %Bplist{}
-
     {:ok, body} = File.read(file)
     << header :: bitstring-size(64), data :: binary >> = body
-    if header != "bplist00" do
-      raise HeaderError
+
+    if header == "bplist00" do
+      load_binary(header, data, body)
+    else
+      load_xml(body)
     end
+  end
+
+  defp load_xml(body) do
+    parsed = Enum.at(Floki.parse(body), 1)
+    define_line = elem(parsed, 0)
+    plist_version = Enum.at(elem(parsed, 1), 0)
+    if define_line != "plist" || plist_version != {"version", "1.0"} do
+      raise FormatError
+    else
+      content = Enum.at(elem(parsed, 2), 0)
+      Enum.into(xmlToMap(elem(content, 2), []), %{})
+    end
+  end
+
+  defp load_binary(header, data, body) do
+    own = %Bplist{}
+
     cont_size = byte_size(data) - 32
     << m :: binary-size(cont_size), buffer :: binary >> = data
     << 0, 0, 0, 0, 0, 0, offset_size :: unsigned-size(8), object_ref_size :: unsigned-size(8), 0, 0, 0, 0, number_of_objects :: unsigned-integer-size(32), 0, 0, 0, 0, top_object :: unsigned-integer-size(32), 0, 0, 0, 0, table_offset :: unsigned-integer-size(32) >> = buffer
@@ -262,5 +281,51 @@ defmodule Bplist do
   defp star_unpack(format, data, out) do
     d = unpack_helper(format, data)
     star_unpack(format, elem(d, 0), out ++ [elem(d, 1)])
+  end
+
+  defp array_value(arr, result) when length(arr) != 0 do
+    [first | rest] = arr
+    value = elem(xmlToMap([first], []), 0)
+    array_value(rest, result ++ [value])
+  end
+
+  defp array_value(arr, result) when length(arr) == 0 do
+    result
+  end
+
+  defp xmlToMap(content, result) when length(content) != 0 do
+    [node | rest] = content
+    case elem(node, 0) do
+      "key" ->
+        key = getNodeValue(node)
+        {value, rest} = xmlToMap(rest, result)
+        xmlToMap(rest, result ++ [{key, value}])
+      "dict" ->
+        arr = elem(node, 2)
+        result = xmlToMap(arr, [])
+        {Enum.into(result, %{}), rest}
+      "array" ->
+        arr = elem(node, 2)
+        result = array_value(arr, [])
+        {result, rest}
+      "true" ->
+        {true, rest}
+      "false" ->
+        {false, rest}
+      "integer" ->
+        {elem(Integer.parse(getNodeValue(node)), 0), rest}
+      "date" ->
+        {getNodeValue(node), rest}
+      "string" ->
+        {getNodeValue(node), rest}
+    end
+  end
+
+  defp xmlToMap(content, result) when length(content) == 0 do
+    result
+  end
+
+  defp getNodeValue(node) do
+    Enum.at(elem(node, 2), 0)
   end
 end
