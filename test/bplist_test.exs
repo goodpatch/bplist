@@ -15,11 +15,14 @@ defmodule BplistTest do
     assert result["MultibyteStringKey"] == "あaいi熙☆ω"
   end
 
-  test "Bplist Error Test" do
-    assert_raise(MatchError, fn ->
+  test "Bplist file exist error" do
+    assert_raise(Bplist.FileExistError, fn ->
       Bplist.load("NoSuchAsFile")
     end)
-    assert_raise(Bplist.HeaderError, fn ->
+  end
+
+  test "Bplist format error" do
+    assert_raise(Bplist.FormatError, fn ->
       Bplist.load("test/check2.plist")
     end)
   end

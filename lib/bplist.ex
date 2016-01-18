@@ -5,6 +5,10 @@ defmodule Bplist do
 
   defstruct fp: <<>>, object_ref_size: 1, offsets: [], body: <<>>
 
+  defmodule FileExistError do
+    defexception message: "File does not exist"
+  end
+
   defmodule HeaderError do
     defexception message: "This file is not binary-plist file"
   end
@@ -26,7 +30,10 @@ defmodule Bplist do
   end
 
   def load(file) do
-    {:ok, body} = File.read(file)
+    body = case File.read(file) do
+      {:ok, body} -> body
+      {:error, _} -> raise FileExistError
+    end
     << header :: bitstring-size(64), data :: binary >> = body
 
     if header == "bplist00" do
@@ -37,6 +44,10 @@ defmodule Bplist do
   end
 
   defp load_xml(body) do
+    xml = Floki.parse(body)
+    if is_binary(xml) == true do
+      raise FormatError
+    end
     parsed = Enum.at(Floki.parse(body), 1)
     define_line = elem(parsed, 0)
     plist_version = Enum.at(elem(parsed, 1), 0)
