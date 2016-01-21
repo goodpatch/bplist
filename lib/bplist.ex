@@ -34,6 +34,11 @@ defmodule Bplist do
       {:ok, body} -> body
       {:error, _} -> raise FileExistError
     end
+
+    load_from_data(body)
+  end
+
+  def load_from_data(body) do
     << header :: bitstring-size(64), data :: binary >> = body
 
     if header == "bplist00" do
