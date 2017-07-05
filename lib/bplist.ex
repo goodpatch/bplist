@@ -39,7 +39,7 @@ defmodule Bplist do
   end
 
   def load_from_data(body) do
-    << header :: bitstring-size(64), data :: binary >> = body
+    <<header :: bitstring-size(64), data :: binary>> = body
 
     if header == "bplist00" do
       load_binary(header, data, body)
@@ -60,7 +60,7 @@ defmodule Bplist do
       raise FormatError
     else
       content = Enum.at(elem(parsed, 2), 0)
-      Enum.into(xmlToMap(elem(content, 2), []), %{})
+      Enum.into(xml_to_map(elem(content, 2), []), %{})
     end
   end
 
@@ -68,9 +68,9 @@ defmodule Bplist do
     own = %Bplist{}
 
     cont_size = byte_size(data) - 32
-    << m :: binary-size(cont_size), buffer :: binary >> = data
-    << 0, 0, 0, 0, 0, 0, offset_size :: unsigned-size(8), object_ref_size :: unsigned-size(8), 0, 0, 0, 0, number_of_objects :: unsigned-integer-size(32), 0, 0, 0, 0, top_object :: unsigned-integer-size(32), 0, 0, 0, 0, table_offset :: unsigned-integer-size(32) >> = buffer
-    << _ :: binary-size(table_offset), offset_table_binary :: binary >> = body
+    <<m :: binary-size(cont_size), buffer :: binary>> = data
+    <<0, 0, 0, 0, 0, 0, offset_size :: unsigned-size(8), object_ref_size :: unsigned-size(8), 0, 0, 0, 0, number_of_objects :: unsigned-integer-size(32), 0, 0, 0, 0, top_object :: unsigned-integer-size(32), 0, 0, 0, 0, table_offset :: unsigned-integer-size(32)>> = buffer
+    <<_ :: binary-size(table_offset), offset_table_binary :: binary>> = body
     coded_offset_table_size = number_of_objects * offset_size
     <<coded_offset_table :: binary-size(coded_offset_table_size), _ :: binary>> = offset_table_binary
 
@@ -97,13 +97,13 @@ defmodule Bplist do
 
   defp read_binary_object_at(own, pos) do
     position = Enum.at(own.offsets, pos)
-    << _ :: binary-size(position), rest :: binary >> = own.body
+    <<_ :: binary-size(position), rest :: binary>> = own.body
     own = %{own | fp: rest}
     read_binary_object(own)
   end
 
   defp read_binary_object(own) do
-    << buff :: binary-size(1), rest :: binary >> = own.fp
+    <<buff :: binary-size(1), rest :: binary>> = own.fp
     own = %{own | fp: rest}
 
     object_length = star_unpack("B", buff, [])
@@ -141,15 +141,15 @@ defmodule Bplist do
 
   defp read_binary_int(own, len) when len <= 3 do
     nbytes = 1 <<< len
-    << buff :: binary-size(nbytes), rest :: binary >> = own.fp
+    <<buff :: binary-size(nbytes), rest :: binary>> = own.fp
     own = %{own | fp: rest}
 
     case len do
-      0 -> << val :: unsigned-size(8) >> = buff
-      1 -> << val :: unsigned-integer-size(16) >> = buff
-      2 -> << val :: unsigned-integer-size(32) >> = buff
+      0 -> <<val :: unsigned-size(8)>> = buff
+      1 -> <<val :: unsigned-integer-size(16)>> = buff
+      2 -> <<val :: unsigned-integer-size(32)>> = buff
       3 ->
-        << hiword :: unsigned-integer-size(32), loword :: unsigned-integer-size(32) >> = buff
+        <<hiword :: unsigned-integer-size(32), loword :: unsigned-integer-size(32)>> = buff
         if hiword &&& 0x80000000 != 0 do
           val = -(:math.pow(2, 63) - ((hiword &&& 0x7fffffff) <<< 32 ||| loword))
         else
@@ -165,9 +165,9 @@ defmodule Bplist do
 
   defp read_binary_real(own, len) when len <= 3 do
     nbytes = 1 <<< len
-    << buff :: binary-size(nbytes), rest :: binary >> = own.fp
+    <<buff :: binary-size(nbytes), rest :: binary>> = own.fp
     own = %{own | fp: rest}
-    << val :: float >> = buff
+    <<val :: float>> = buff
     {own, val}
   end
 
@@ -178,14 +178,14 @@ defmodule Bplist do
   # Return Mach Absolute Time
   defp read_binary_date(own, len) when len <= 3 do
     nbytes = 1 <<< len
-    << buff :: binary-size(nbytes), rest :: binary >> = own.fp
+    <<buff :: binary-size(nbytes), rest :: binary>> = own.fp
     own = %{own | fp: rest}
-    << val :: float >> = buff
+    <<val :: float>> = buff
     {own, val}
   end
 
   defp read_binary_string(own, len) when len > 0 do
-    << buff :: binary-size(len), rest :: binary >> = own.fp
+    <<buff :: binary-size(len), rest :: binary>> = own.fp
     own = %{own | fp: rest}
     {own, buff}
   end
@@ -195,14 +195,14 @@ defmodule Bplist do
   end
 
   defp read_binary_data(own, len) when len > 0 do
-    << buff :: binary-size(len), rest :: binary >> = own.fp
+    <<buff :: binary-size(len), rest :: binary>> = own.fp
     own = %{own | fp: rest}
     {own, Base.encode64(buff)}
   end
 
   defp read_binary_unicode_string(own, len) do
     size = len * 2
-    << buff :: binary-size(size), rest :: binary >> = own.fp
+    <<buff :: binary-size(size), rest :: binary>> = own.fp
     out = encode_unicode_string(buff, "")
     own = %{own | fp: rest}
     {own, out}
@@ -210,7 +210,7 @@ defmodule Bplist do
 
   defp read_binary_array(own, len) when len != 0 do
     size = len * own.object_ref_size
-    << buff :: binary-size(size), rest :: binary >> = own.fp
+    <<buff :: binary-size(size), rest :: binary>> = own.fp
     own = %{own | fp: rest}
 
     case own.object_ref_size do
@@ -232,7 +232,7 @@ defmodule Bplist do
     res = %{}
 
     size = len * own.object_ref_size
-    << buff :: binary-size(size), rest :: binary >> = own.fp
+    <<buff :: binary-size(size), rest :: binary>> = own.fp
     own = %{own | fp: rest}
 
     case own.object_ref_size do
@@ -240,7 +240,7 @@ defmodule Bplist do
       _ -> keys = star_unpack("H", buff, [])
     end
 
-    << buff :: binary-size(size), rest :: binary >> = own.fp
+    <<buff :: binary-size(size), rest :: binary>> = own.fp
     own = %{own | fp: rest}
 
     case own.object_ref_size do
@@ -272,20 +272,20 @@ defmodule Bplist do
   end
 
   defp encode_unicode_string(binary, out) do
-    << multi_byte :: binary-size(2), rest :: binary >> = binary
-    << utf16_string :: utf16 >> = multi_byte
-    out = out <> << utf16_string :: utf8 >>
+    <<multi_byte :: binary-size(2), rest :: binary>> = binary
+    <<utf16_string :: utf16>> = multi_byte
+    out = out <> <<utf16_string :: utf8>>
     encode_unicode_string(rest, out)
   end
 
   defp unpack_helper(format, data) do
     case format do
       "B" ->
-        << tmp_binary :: unsigned-size(8), rest :: binary >> = data
+        <<tmp_binary :: unsigned-size(8), rest :: binary>> = data
       "H" ->
-        << tmp_binary :: unsigned-integer-size(16), rest :: binary >> = data
+        <<tmp_binary :: unsigned-integer-size(16), rest :: binary>> = data
       "L" ->
-        << tmp_binary :: unsigned-integer-size(32), rest :: binary >> = data
+        <<tmp_binary :: unsigned-integer-size(32), rest :: binary>> = data
     end
     {rest, tmp_binary}
   end
@@ -301,7 +301,7 @@ defmodule Bplist do
 
   defp array_value(arr, result) when length(arr) != 0 do
     [first | rest] = arr
-    value = elem(xmlToMap([first], []), 0)
+    value = elem(xml_to_map([first], []), 0)
     array_value(rest, result ++ [value])
   end
 
@@ -309,16 +309,16 @@ defmodule Bplist do
     result
   end
 
-  defp xmlToMap(content, result) when length(content) != 0 do
+  defp xml_to_map(content, result) when length(content) != 0 do
     [node | rest] = content
     case elem(node, 0) do
       "key" ->
-        key = getNodeValue(node)
-        {value, rest} = xmlToMap(rest, result)
-        xmlToMap(rest, result ++ [{key, value}])
+        key = get_node_value(node)
+        {value, rest} = xml_to_map(rest, result)
+        xml_to_map(rest, result ++ [{key, value}])
       "dict" ->
         arr = elem(node, 2)
-        result = xmlToMap(arr, [])
+        result = xml_to_map(arr, [])
         {Enum.into(result, %{}), rest}
       "array" ->
         arr = elem(node, 2)
@@ -329,21 +329,21 @@ defmodule Bplist do
       "false" ->
         {false, rest}
       "integer" ->
-        {elem(Integer.parse(getNodeValue(node)), 0), rest}
+        {elem(Integer.parse(get_node_value(node)), 0), rest}
       "date" ->
-        {getNodeValue(node), rest}
+        {get_node_value(node), rest}
       "string" ->
-        {getNodeValue(node), rest}
+        {get_node_value(node), rest}
       "data" ->
-        {getNodeValue(node), rest}
+        {get_node_value(node), rest}
     end
   end
 
-  defp xmlToMap(content, result) when length(content) == 0 do
+  defp xml_to_map(content, result) when length(content) == 0 do
     result
   end
 
-  defp getNodeValue(node) do
+  defp get_node_value(node) do
     Enum.at(elem(node, 2), 0)
   end
 end
