@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ArrayKey</key>
+	<array>
+		<true/>
+		<string>Item1</string>
+		<integer>123456789</integer>
+	</array>
+	<key>BinaryKey</key>
+	<data>
+	AQI=
+	</data>
+	<key>BooleanFalseKey</key>
+	<false/>
+	<key>BooleanTrueKey</key>
+	<true/>
+	<key>DateKey</key>
+	<date>2014-12-31T15:00:00Z</date>
+	<key>DictionaryKey</key>
+	<dict>
+		<key>DictKey1</key>
+		<string>DictString</string>
+		<key>DictKey2</key>
+		<false/>
+	</dict>
+	<key>IntegerKey</key>
+	<integer>10</integer>
+	<key>MultibyteStringKey</key>
+	<string>あaいi熙☆ω</string>
+	<key>StringKey</key>
+	<string>ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+	<key>EmptyString</key>
+	<string></string>
+	<key></key>
+	<string>Hoge</string>
+	<key>EmptyDictionaryKey</key>
+	<dict>
+		<key></key>
+		<string>Hoge</string>
+		<key>DictEmptyKey</key>
+		<string></string>
+	</dict>
+</dict>
+</plist>

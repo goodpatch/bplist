@@ -190,7 +190,7 @@ defmodule Bplist do
     {own, buff}
   end
 
-  defp read_binary_string(own, len) when len > 0 do
+  defp read_binary_string(own, len) when len == 0 do
     {own, ""}
   end
 
@@ -333,6 +333,8 @@ defmodule Bplist do
       "date" ->
         {getNodeValue(node), rest}
       "string" ->
+        {getNodeValue(node), rest}
+      "data" ->
         {getNodeValue(node), rest}
     end
   end
